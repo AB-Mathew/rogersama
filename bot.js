@@ -1,10 +1,18 @@
 
 const { ActivityHandler } = require('botbuilder');
 const { QnAMaker } = require('botbuilder-ai');
+const msRest = require('@azure/ms-rest-js');
+const qnamaker = require('@azure/cognitiveservices-qnamaker');
+const updateKB = require('./kbHelper');
+// const qnamaker_runtime = require('@azure/cognitiveservices-qnamaker-runtime');
 
 class QnABot extends ActivityHandler {
     constructor() {
         super();
+
+        const creds = new msRest.ApiKeyCredentials({ inHeader: { 'Ocp-Apim-Subscription-Key': process.env.AuthoringKey } });
+        const qnaMakerClient = new qnamaker.QnAMakerClient(creds, `https://${process.env.ResourceName}.cognitiveservices.azure.com`);
+        const knowledgeBaseClient = new qnamaker.Knowledgebase(qnaMakerClient);
 
         try {
             this.qnaMaker = new QnAMaker({
@@ -21,7 +29,7 @@ class QnABot extends ActivityHandler {
             const membersAdded = context.activity.membersAdded;
             for (let cnt = 0; cnt < membersAdded.length; cnt++) {
                 if (membersAdded[cnt].id !== context.activity.recipient.id) {
-                    await context.sendActivity('Welcome to the QnA Maker sample! Ask me a question and I will try to answer it.');
+                    await context.sendActivity('Welcome to Rogers AMA! Ask me a question and I will try to answer it.');
                 }
             }
 
@@ -37,10 +45,22 @@ class QnABot extends ActivityHandler {
                     'You may visit www.qnamaker.ai to create a QnA Maker knowledge base.';
 
                 await context.sendActivity(unconfiguredQnaMessage);
+            } else if (context._activity.text.includes('/')) {
+                console.log('Adding Q to QnA Knowlwdge Base');
+                const textArr = context._activity.text.split('/');
+                const { kbID } = await updateKB.updateKnowledgeBase(qnaMakerClient, knowledgeBaseClient, process.env.QnAKnowledgebaseId, textArr[0], textArr[1], textArr[2].trim().toLowerCase());
+                await updateKB.publishKnowledgeBase(knowledgeBaseClient, process.env.QnAKnowledgebaseId);
+                await context.sendActivity(kbID + ' has been updated and published');
             } else {
                 console.log('Calling QnA Maker');
-
-                const qnaResults = await this.qnaMaker.getAnswers(context);
+                console.log(context);
+                const qnaResults = !context._activity.text.includes(':') ? await this.qnaMaker.getAnswers(context) : await this.qnaMaker.getAnswers(context, {
+                    strictFilters: [
+                        {
+                            name: 'Category', value: context._activity.text.split(':')[0].trim().toLowerCase()
+                        }
+                    ]
+                });
 
                 // If an answer was received from QnA Maker, send the answer back to the user.
                 if (qnaResults[0]) {
