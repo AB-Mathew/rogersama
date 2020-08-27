@@ -29,7 +29,7 @@ class QnABot extends ActivityHandler {
             const membersAdded = context.activity.membersAdded;
             for (let cnt = 0; cnt < membersAdded.length; cnt++) {
                 if (membersAdded[cnt].id !== context.activity.recipient.id) {
-                    await context.sendActivity('Welcome to Rogers AMA! Ask me a question and I will try to answer it.');
+                    await context.sendActivity(`Welcome to Rogers Digital Media! I'll be your Virtual Assistant, let me know how I can help you through your onboarding experience`);
                 }
             }
 
