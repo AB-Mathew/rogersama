@@ -45,19 +45,18 @@ class QnABot extends ActivityHandler {
                     'You may visit www.qnamaker.ai to create a QnA Maker knowledge base.';
 
                 await context.sendActivity(unconfiguredQnaMessage);
-            } else if (context._activity.text.includes('/')) {
+            } else if (context._activity.text.includes('|')) {
                 console.log('Adding Q to QnA Knowlwdge Base');
-                const textArr = context._activity.text.split('/');
+                const textArr = context._activity.text.split('|');
                 const { kbID } = await updateKB.updateKnowledgeBase(qnaMakerClient, knowledgeBaseClient, process.env.QnAKnowledgebaseId, textArr[0], textArr[1], textArr[2].trim().toLowerCase());
                 await updateKB.publishKnowledgeBase(knowledgeBaseClient, process.env.QnAKnowledgebaseId);
                 await context.sendActivity(kbID + ' has been updated and published');
             } else {
                 console.log('Calling QnA Maker');
-                console.log(context);
                 const qnaResults = !context._activity.text.includes(':') ? await this.qnaMaker.getAnswers(context) : await this.qnaMaker.getAnswers(context, {
                     strictFilters: [
                         {
-                            name: 'Category', value: context._activity.text.split(':')[0].trim().toLowerCase()
+                            name: 'org', value: context._activity.text.split(':')[0].trim().toLowerCase()
                         }
                     ]
                 });
