@@ -53,10 +53,10 @@ class QnABot extends ActivityHandler {
                 await context.sendActivity(kbID + ' has been updated and published');
             } else {
                 console.log('Calling QnA Maker');
-                const qnaResults = !context._activity.text.includes(':') ? await this.qnaMaker.getAnswers(context) : await this.qnaMaker.getAnswers(context, {
+                const qnaResults = !context._activity.text.startsWith('w') ? await this.qnaMaker.getAnswers(context) : await this.qnaMaker.getAnswers(context, {
                     strictFilters: [
                         {
-                            name: 'org', value: context._activity.text.split(':')[0].trim().toLowerCase()
+                            name: 'org', value: 'media'
                         }
                     ]
                 });
