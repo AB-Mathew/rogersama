@@ -16,6 +16,9 @@
         "url": "https://github.com"
     },
     "dependencies": {
+        "@azure/cognitiveservices-qnamaker": "^3.1.1",
+        "@azure/cognitiveservices-qnamaker-runtime": "^1.0.1",
+        "@azure/ms-rest-js": "^2.0.8",
         "botbuilder": "~4.9.0",
         "botbuilder-ai": "^4.9.3",
         "dotenv": "^8.2.0",
